@@ -1,7 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { toast } from "sonner";
-import { authAPI } from "../services/api";
 
 // Define user roles
 export type UserRole = "customer" | "provider" | "admin";
@@ -27,6 +26,31 @@ interface AuthContextType {
 // Create auth context
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Mock users for demo
+const MOCK_USERS: User[] = [
+  { 
+    id: "1", 
+    name: "John Customer", 
+    email: "customer@example.com", 
+    role: "customer",
+    avatar: "https://i.pravatar.cc/150?u=customer"
+  },
+  { 
+    id: "2", 
+    name: "Sarah Provider", 
+    email: "provider@example.com", 
+    role: "provider",
+    avatar: "https://i.pravatar.cc/150?u=provider"
+  },
+  { 
+    id: "3", 
+    name: "Admin User", 
+    email: "admin@example.com", 
+    role: "admin",
+    avatar: "https://i.pravatar.cc/150?u=admin"
+  }
+];
+
 // Auth provider component
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -46,12 +70,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(true);
     
     try {
-      const { success, user } = await authAPI.login(email, password);
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
-      if (success && user) {
-        setUser(user);
-        localStorage.setItem("user", JSON.stringify(user));
-        toast.success(`Welcome back, ${user.name}!`);
+      // Find user by email
+      const foundUser = MOCK_USERS.find(u => u.email === email);
+      
+      if (foundUser && password === "password") { // In a real app, you'd verify the password hash
+        setUser(foundUser);
+        localStorage.setItem("user", JSON.stringify(foundUser));
+        toast.success(`Welcome back, ${foundUser.name}!`);
       } else {
         throw new Error("Invalid credentials");
       }
@@ -68,15 +96,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(true);
     
     try {
-      const { success, user } = await authAPI.register(name, email, password, role);
-      
-      if (success && user) {
-        setUser(user);
-        localStorage.setItem("user", JSON.stringify(user));
-        toast.success("Registration successful!");
-      } else {
-        throw new Error("Registration failed");
+      // Check if email already exists
+      if (MOCK_USERS.some(u => u.email === email)) {
+        throw new Error("Email already registered");
       }
+      
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Create new user
+      const newUser: User = {
+        id: `user_${Math.random().toString(36).substring(2, 9)}`,
+        name,
+        email,
+        role,
+        avatar: `https://i.pravatar.cc/150?u=${Math.random()}`
+      };
+      
+      // In a real app, this would be saved to the database
+      // For now, we'll just set the user state
+      setUser(newUser);
+      localStorage.setItem("user", JSON.stringify(newUser));
+      toast.success("Registration successful!");
     } catch (error: any) {
       toast.error(error.message || "Registration failed");
       throw error;

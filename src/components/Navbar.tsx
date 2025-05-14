@@ -33,26 +33,16 @@ const Navbar: React.FC = () => {
           <div className="flex items-center">
             {user ? (
               <div className="flex items-center space-x-4">
-                <div className="hidden md:flex items-center space-x-1">
-                  <span className="text-sm text-gray-700 mr-2">
-                    Welcome, <span className="font-medium">{user.name.split(' ')[0]}</span>
-                  </span>
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-foreground text-primary capitalize">
-                    {user.role}
-                  </span>
-                </div>
                 <Button variant="ghost" size="icon" className="relative">
                   <Bell className="h-5 w-5" />
-                  <span className="absolute top-0 right-0 h-2.5 w-2.5 bg-red-500 rounded-full ring-2 ring-white"></span>
+                  <span className="absolute top-0 right-0 h-2 w-2 bg-primary rounded-full"></span>
                 </Button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                       <Avatar>
                         <AvatarImage src={user.avatar} />
-                        <AvatarFallback className="bg-primary/10 text-primary">
-                          {user.name.charAt(0)}
-                        </AvatarFallback>
+                        <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
                       </Avatar>
                     </Button>
                   </DropdownMenuTrigger>
@@ -80,14 +70,14 @@ const Navbar: React.FC = () => {
                 </DropdownMenu>
               </div>
             ) : (
-              <div className="flex items-center space-x-4">
+              <div className="flex items-center">
                 <Link to="/login">
-                  <Button variant="outline" className="text-sm">
-                    Sign in
+                  <Button variant="outline" className="mr-2">
+                    Login
                   </Button>
                 </Link>
                 <Link to="/register">
-                  <Button className="text-sm">Register</Button>
+                  <Button>Register</Button>
                 </Link>
               </div>
             )}

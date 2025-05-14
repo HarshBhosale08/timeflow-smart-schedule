@@ -1,5 +1,4 @@
 
-import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -19,7 +18,6 @@ import ProviderSchedule from "./pages/ProviderSchedule";
 import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
 
-// Create a new query client
 const queryClient = new QueryClient();
 
 // Protected route component
@@ -41,73 +39,69 @@ const ProtectedRoute = ({ children, requiredRoles = [] }: { children: React.Reac
   return <>{children}</>;
 };
 
-const App = () => {
-  return (
-    <React.StrictMode>
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <AppointmentProvider>
-            <TooltipProvider>
-              <Toaster />
-              <Sonner />
-              <BrowserRouter>
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/register" element={<Register />} />
-                  
-                  {/* Protected routes */}
-                  <Route 
-                    path="/dashboard" 
-                    element={
-                      <ProtectedRoute>
-                        <Dashboard />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  <Route 
-                    path="/book" 
-                    element={
-                      <ProtectedRoute requiredRoles={["customer"]}>
-                        <BookAppointment />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  <Route 
-                    path="/appointments" 
-                    element={
-                      <ProtectedRoute requiredRoles={["customer"]}>
-                        <CustomerAppointments />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  <Route 
-                    path="/schedule" 
-                    element={
-                      <ProtectedRoute requiredRoles={["provider"]}>
-                        <ProviderSchedule />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  <Route 
-                    path="/all-appointments" 
-                    element={
-                      <ProtectedRoute requiredRoles={["admin"]}>
-                        <AdminDashboard />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  
-                  {/* Catch-all route */}
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </BrowserRouter>
-            </TooltipProvider>
-          </AppointmentProvider>
-        </AuthProvider>
-      </QueryClientProvider>
-    </React.StrictMode>
-  );
-};
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <AuthProvider>
+      <AppointmentProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              
+              {/* Protected routes */}
+              <Route 
+                path="/dashboard" 
+                element={
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/book" 
+                element={
+                  <ProtectedRoute requiredRoles={["customer"]}>
+                    <BookAppointment />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/appointments" 
+                element={
+                  <ProtectedRoute requiredRoles={["customer"]}>
+                    <CustomerAppointments />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/schedule" 
+                element={
+                  <ProtectedRoute requiredRoles={["provider"]}>
+                    <ProviderSchedule />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/all-appointments" 
+                element={
+                  <ProtectedRoute requiredRoles={["admin"]}>
+                    <AdminDashboard />
+                  </ProtectedRoute>
+                } 
+              />
+              
+              {/* Catch-all route */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </AppointmentProvider>
+    </AuthProvider>
+  </QueryClientProvider>
+);
 
 export default App;

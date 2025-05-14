@@ -2,9 +2,11 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
-import { Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Calendar } from "lucide-react";
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
@@ -19,137 +21,93 @@ const Login: React.FC = () => {
 
     try {
       await login(email, password);
-      toast.success("Login successful");
       navigate("/dashboard");
     } catch (err) {
       setError("Invalid email or password");
-      toast.error("Login failed");
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="flex justify-center">
-          <Calendar className="h-12 w-12 text-primary" />
-        </div>
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          Welcome back
-        </h2>
-        <p className="mt-2 text-center text-sm text-gray-600">
-          Sign in to your Smart Scheduler account
-        </p>
-      </div>
-
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-          <form className="space-y-6" onSubmit={handleSubmit}>
+    <div className="flex h-screen items-center justify-center bg-gray-50 px-4 sm:px-6 lg:px-8">
+      <Card className="w-full max-w-md animate-fade-in">
+        <CardHeader className="space-y-2 text-center">
+          <div className="flex justify-center">
+            <Calendar className="h-12 w-12 text-primary" />
+          </div>
+          <CardTitle className="text-2xl font-bold">Welcome back</CardTitle>
+          <CardDescription>
+            Sign in to access your Smart Scheduler account
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-800 rounded-md p-4 text-sm">
+              <div className="bg-red-50 text-red-500 px-4 py-3 rounded-md text-sm">
                 {error}
               </div>
             )}
-            
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Email
-              </label>
-              <div className="mt-1">
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-                  placeholder="name@example.com"
-                />
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="name@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
             </div>
-
-            <div>
-              <div className="flex justify-between">
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                  Password
-                </label>
-                <Link to="/forgot-password" className="text-sm text-primary hover:text-primary-dark">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password">Password</Label>
+                <Link to="/forgot-password" className="text-sm text-primary hover:underline">
                   Forgot password?
                 </Link>
               </div>
-              <div className="mt-1">
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  autoComplete="current-password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-                  placeholder="••••••••"
-                />
-              </div>
+              <Input
+                id="password"
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
             </div>
-
-            <div>
-              <Button 
-                type="submit" 
-                className="w-full flex justify-center py-2 px-4"
-                disabled={isLoading}
-              >
-                {isLoading ? "Signing in..." : "Sign in"}
-              </Button>
-            </div>
-            
-            <div className="text-center">
-              <p className="text-sm text-gray-600">
-                Don't have an account?{" "}
-                <Link to="/register" className="text-primary hover:text-primary-dark font-medium">
-                  Register here
-                </Link>
-              </p>
-            </div>
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? "Signing in..." : "Sign in"}
+            </Button>
           </form>
+
+          <div className="mt-4 text-center text-sm">
+            <span className="text-muted-foreground">Don't have an account?</span>{" "}
+            <Link to="/register" className="text-primary hover:underline">
+              Register here
+            </Link>
+          </div>
 
           <div className="mt-6">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300"></div>
+                <span className="w-full border-t border-gray-300" />
               </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">
+              <div className="relative flex justify-center text-xs">
+                <span className="bg-white px-2 text-muted-foreground">
                   Demo Accounts
                 </span>
               </div>
             </div>
 
-            <div className="mt-4">
-              <div className="bg-gray-50 border border-gray-200 rounded-md p-4 text-sm text-gray-600">
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <p className="font-medium text-sm mb-1">Customer</p>
-                    <code className="text-xs">customer@example.com</code>
-                  </div>
-                  <div>
-                    <p className="font-medium text-sm mb-1">Provider</p>
-                    <code className="text-xs">provider@example.com</code>
-                  </div>
-                  <div>
-                    <p className="font-medium text-sm mb-1">Admin</p>
-                    <code className="text-xs">admin@example.com</code>
-                  </div>
-                  <div>
-                    <p className="font-medium text-sm mb-1">Password</p>
-                    <code className="text-xs">password</code>
-                  </div>
-                </div>
+            <div className="mt-4 grid gap-2 text-sm text-gray-600">
+              <div className="rounded-md bg-gray-50 p-2">
+                <div>Customer: customer@example.com</div>
+                <div>Provider: provider@example.com</div>
+                <div>Admin: admin@example.com</div>
+                <div className="mt-1 text-xs text-gray-500">Password: "password" for all demo accounts</div>
               </div>
             </div>
           </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
