@@ -16,8 +16,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       <Navbar />
       <div className="flex">
         {user && <Sidebar />}
-        <div className={`flex-1 p-4 ${user ? 'md:ml-64' : ''}`}>
-          <div className="container mx-auto">
+        <div className={`flex-1 transition-all duration-300 ${user ? 'md:ml-64' : ''}`}>
+          <div className="container mx-auto px-4 py-6 pt-20">
             {children}
           </div>
         </div>

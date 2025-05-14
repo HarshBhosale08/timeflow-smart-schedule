@@ -3,7 +3,10 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Calendar } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { UserRole } from "@/context/AuthContext";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { toast } from "sonner";
 
 const Register: React.FC = () => {
   const navigate = useNavigate();
@@ -26,143 +29,200 @@ const Register: React.FC = () => {
 
     try {
       await register(name, email, password, role);
+      toast.success("Registration successful");
       navigate("/dashboard");
     } catch (err: any) {
       setError(err.message || "Registration failed");
+      toast.error("Registration failed");
     }
   };
 
   return (
-    <div className="d-flex align-items-center justify-content-center min-vh-100 bg-light py-5">
-      <div className="card shadow fade-in w-100" style={{ maxWidth: "450px" }}>
-        <div className="card-header text-center bg-white border-0 pt-4">
-          <div className="d-flex justify-content-center">
-            <Calendar className="text-primary" size={48} />
-          </div>
-          <h4 className="card-title fw-bold mt-3">Create an account</h4>
-          <p className="card-text text-muted">
-            Register to start using Smart Scheduler
-          </p>
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="flex justify-center">
+          <Calendar className="h-12 w-12 text-primary" />
         </div>
-        <div className="card-body">
-          <form onSubmit={handleSubmit}>
+        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+          Create an account
+        </h2>
+        <p className="mt-2 text-center text-sm text-gray-600">
+          Register to start using Smart Scheduler
+        </p>
+      </div>
+
+      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+          <form className="space-y-6" onSubmit={handleSubmit}>
             {error && (
-              <div className="alert alert-danger" role="alert">
+              <div className="bg-red-50 border border-red-200 text-red-800 rounded-md p-4 text-sm">
                 {error}
               </div>
             )}
-            <div className="mb-3">
-              <label htmlFor="name" className="form-label">Full Name</label>
-              <input
-                id="name"
-                className="form-control"
-                placeholder="John Doe"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-              />
+            
+            <div>
+              <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                Full Name
+              </label>
+              <div className="mt-1">
+                <input
+                  id="name"
+                  name="name"
+                  type="text"
+                  autoComplete="name"
+                  required
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+                  placeholder="John Doe"
+                />
+              </div>
             </div>
-            <div className="mb-3">
-              <label htmlFor="email" className="form-label">Email</label>
-              <input
-                id="email"
-                type="email"
-                className="form-control"
-                placeholder="name@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
+            
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                Email
+              </label>
+              <div className="mt-1">
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  autoComplete="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+                  placeholder="name@example.com"
+                />
+              </div>
             </div>
-            <div className="mb-3">
-              <label htmlFor="password" className="form-label">Password</label>
-              <input
-                id="password"
-                type="password"
-                className="form-control"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={6}
-              />
+
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                Password
+              </label>
+              <div className="mt-1">
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  autoComplete="new-password"
+                  required
+                  minLength={6}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+                  placeholder="••••••••"
+                />
+              </div>
             </div>
-            <div className="mb-3">
-              <label htmlFor="confirmPassword" className="form-label">Confirm Password</label>
-              <input
-                id="confirmPassword"
-                type="password"
-                className="form-control"
-                placeholder="••••••••"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-              />
+
+            <div>
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+                Confirm Password
+              </label>
+              <div className="mt-1">
+                <input
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  type="password"
+                  autoComplete="new-password"
+                  required
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+                  placeholder="••••••••"
+                />
+              </div>
             </div>
-            <div className="mb-3">
-              <label className="form-label">Account Type</label>
-              <div className="row g-2">
-                <div className="col-4">
-                  <div className="form-check border rounded p-3">
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Account Type
+              </label>
+              <div className="grid grid-cols-3 gap-4">
+                <div 
+                  className={`border rounded-md p-3 cursor-pointer transition-all ${role === 'customer' ? 'border-primary bg-primary/5' : 'border-gray-200 bg-white'}`}
+                  onClick={() => setRole("customer")}
+                >
+                  <div className="flex items-center">
                     <input
-                      className="form-check-input"
                       type="radio"
                       name="accountType"
                       id="customer"
                       value="customer"
                       checked={role === "customer"}
                       onChange={() => setRole("customer")}
+                      className="h-4 w-4 text-primary border-gray-300 focus:ring-primary"
                     />
-                    <label className="form-check-label" htmlFor="customer">
+                    <label htmlFor="customer" className="ml-2 block text-sm font-medium text-gray-700 cursor-pointer">
                       Customer
                     </label>
                   </div>
                 </div>
-                <div className="col-4">
-                  <div className="form-check border rounded p-3">
+                
+                <div 
+                  className={`border rounded-md p-3 cursor-pointer transition-all ${role === 'provider' ? 'border-primary bg-primary/5' : 'border-gray-200 bg-white'}`}
+                  onClick={() => setRole("provider")}
+                >
+                  <div className="flex items-center">
                     <input
-                      className="form-check-input"
                       type="radio"
                       name="accountType"
                       id="provider"
                       value="provider"
                       checked={role === "provider"}
                       onChange={() => setRole("provider")}
+                      className="h-4 w-4 text-primary border-gray-300 focus:ring-primary"
                     />
-                    <label className="form-check-label" htmlFor="provider">
+                    <label htmlFor="provider" className="ml-2 block text-sm font-medium text-gray-700 cursor-pointer">
                       Provider
                     </label>
                   </div>
                 </div>
-                <div className="col-4">
-                  <div className="form-check border rounded p-3">
+                
+                <div 
+                  className={`border rounded-md p-3 cursor-pointer transition-all ${role === 'admin' ? 'border-primary bg-primary/5' : 'border-gray-200 bg-white'}`}
+                  onClick={() => setRole("admin")}
+                >
+                  <div className="flex items-center">
                     <input
-                      className="form-check-input"
                       type="radio"
                       name="accountType"
                       id="admin"
                       value="admin"
                       checked={role === "admin"}
                       onChange={() => setRole("admin")}
+                      className="h-4 w-4 text-primary border-gray-300 focus:ring-primary"
                     />
-                    <label className="form-check-label" htmlFor="admin">
+                    <label htmlFor="admin" className="ml-2 block text-sm font-medium text-gray-700 cursor-pointer">
                       Admin
                     </label>
                   </div>
                 </div>
               </div>
             </div>
-            <button type="submit" className="btn btn-primary w-100" disabled={isLoading}>
-              {isLoading ? "Creating account..." : "Create account"}
-            </button>
-          </form>
 
-          <div className="text-center mt-3">
-            <span className="text-muted small">Already have an account?</span>{" "}
-            <Link to="/login" className="text-decoration-none text-primary">
-              Sign in
-            </Link>
-          </div>
+            <div>
+              <Button 
+                type="submit" 
+                className="w-full flex justify-center py-2 px-4"
+                disabled={isLoading}
+              >
+                {isLoading ? "Creating account..." : "Create account"}
+              </Button>
+            </div>
+            
+            <div className="text-center">
+              <p className="text-sm text-gray-600">
+                Already have an account?{" "}
+                <Link to="/login" className="text-primary hover:text-primary-dark font-medium">
+                  Sign in
+                </Link>
+              </p>
+            </div>
+          </form>
         </div>
       </div>
     </div>
