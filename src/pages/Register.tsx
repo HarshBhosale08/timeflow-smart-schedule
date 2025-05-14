@@ -2,11 +2,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Calendar } from "lucide-react";
 import { UserRole } from "@/context/AuthContext";
 
@@ -38,50 +33,53 @@ const Register: React.FC = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
-      <Card className="w-full max-w-md animate-fade-in">
-        <CardHeader className="space-y-2 text-center">
-          <div className="flex justify-center">
-            <Calendar className="h-12 w-12 text-primary" />
+    <div className="d-flex align-items-center justify-content-center min-vh-100 bg-light py-5">
+      <div className="card shadow fade-in w-100" style={{ maxWidth: "450px" }}>
+        <div className="card-header text-center bg-white border-0 pt-4">
+          <div className="d-flex justify-content-center">
+            <Calendar className="text-primary" size={48} />
           </div>
-          <CardTitle className="text-2xl font-bold">Create an account</CardTitle>
-          <CardDescription>
+          <h4 className="card-title fw-bold mt-3">Create an account</h4>
+          <p className="card-text text-muted">
             Register to start using Smart Scheduler
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          </p>
+        </div>
+        <div className="card-body">
+          <form onSubmit={handleSubmit}>
             {error && (
-              <div className="bg-red-50 text-red-500 px-4 py-3 rounded-md text-sm">
+              <div className="alert alert-danger" role="alert">
                 {error}
               </div>
             )}
-            <div className="space-y-2">
-              <Label htmlFor="name">Full Name</Label>
-              <Input
+            <div className="mb-3">
+              <label htmlFor="name" className="form-label">Full Name</label>
+              <input
                 id="name"
+                className="form-control"
                 placeholder="John Doe"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
+            <div className="mb-3">
+              <label htmlFor="email" className="form-label">Email</label>
+              <input
                 id="email"
                 type="email"
+                className="form-control"
                 placeholder="name@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
+            <div className="mb-3">
+              <label htmlFor="password" className="form-label">Password</label>
+              <input
                 id="password"
                 type="password"
+                className="form-control"
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -89,52 +87,84 @@ const Register: React.FC = () => {
                 minLength={6}
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
-              <Input
+            <div className="mb-3">
+              <label htmlFor="confirmPassword" className="form-label">Confirm Password</label>
+              <input
                 id="confirmPassword"
                 type="password"
+                className="form-control"
                 placeholder="••••••••"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
               />
             </div>
-            <div className="space-y-2">
-              <Label>Account Type</Label>
-              <RadioGroup 
-                defaultValue="customer" 
-                value={role}
-                onValueChange={(value) => setRole(value as UserRole)}
-                className="grid grid-cols-3 gap-4"
-              >
-                <div className="flex items-center space-x-2 rounded-md border p-2">
-                  <RadioGroupItem value="customer" id="customer" />
-                  <Label htmlFor="customer" className="cursor-pointer">Customer</Label>
+            <div className="mb-3">
+              <label className="form-label">Account Type</label>
+              <div className="row g-2">
+                <div className="col-4">
+                  <div className="form-check border rounded p-3">
+                    <input
+                      className="form-check-input"
+                      type="radio"
+                      name="accountType"
+                      id="customer"
+                      value="customer"
+                      checked={role === "customer"}
+                      onChange={() => setRole("customer")}
+                    />
+                    <label className="form-check-label" htmlFor="customer">
+                      Customer
+                    </label>
+                  </div>
                 </div>
-                <div className="flex items-center space-x-2 rounded-md border p-2">
-                  <RadioGroupItem value="provider" id="provider" />
-                  <Label htmlFor="provider" className="cursor-pointer">Provider</Label>
+                <div className="col-4">
+                  <div className="form-check border rounded p-3">
+                    <input
+                      className="form-check-input"
+                      type="radio"
+                      name="accountType"
+                      id="provider"
+                      value="provider"
+                      checked={role === "provider"}
+                      onChange={() => setRole("provider")}
+                    />
+                    <label className="form-check-label" htmlFor="provider">
+                      Provider
+                    </label>
+                  </div>
                 </div>
-                <div className="flex items-center space-x-2 rounded-md border p-2">
-                  <RadioGroupItem value="admin" id="admin" />
-                  <Label htmlFor="admin" className="cursor-pointer">Admin</Label>
+                <div className="col-4">
+                  <div className="form-check border rounded p-3">
+                    <input
+                      className="form-check-input"
+                      type="radio"
+                      name="accountType"
+                      id="admin"
+                      value="admin"
+                      checked={role === "admin"}
+                      onChange={() => setRole("admin")}
+                    />
+                    <label className="form-check-label" htmlFor="admin">
+                      Admin
+                    </label>
+                  </div>
                 </div>
-              </RadioGroup>
+              </div>
             </div>
-            <Button type="submit" className="w-full" disabled={isLoading}>
+            <button type="submit" className="btn btn-primary w-100" disabled={isLoading}>
               {isLoading ? "Creating account..." : "Create account"}
-            </Button>
+            </button>
           </form>
 
-          <div className="mt-4 text-center text-sm">
-            <span className="text-muted-foreground">Already have an account?</span>{" "}
-            <Link to="/login" className="text-primary hover:underline">
+          <div className="text-center mt-3">
+            <span className="text-muted small">Already have an account?</span>{" "}
+            <Link to="/login" className="text-decoration-none text-primary">
               Sign in
             </Link>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 };

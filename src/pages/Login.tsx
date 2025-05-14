@@ -2,10 +2,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar } from "lucide-react";
 
 const Login: React.FC = () => {
@@ -28,86 +24,90 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="flex h-screen items-center justify-center bg-gray-50 px-4 sm:px-6 lg:px-8">
-      <Card className="w-full max-w-md animate-fade-in">
-        <CardHeader className="space-y-2 text-center">
-          <div className="flex justify-center">
-            <Calendar className="h-12 w-12 text-primary" />
+    <div className="d-flex align-items-center justify-content-center min-vh-100 bg-light">
+      <div className="card shadow fade-in w-100" style={{ maxWidth: "450px" }}>
+        <div className="card-header text-center bg-white border-0 pt-4">
+          <div className="d-flex justify-content-center">
+            <Calendar className="text-primary" size={48} />
           </div>
-          <CardTitle className="text-2xl font-bold">Welcome back</CardTitle>
-          <CardDescription>
+          <h4 className="card-title fw-bold mt-3">Welcome back</h4>
+          <p className="card-text text-muted">
             Sign in to access your Smart Scheduler account
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          </p>
+        </div>
+        <div className="card-body">
+          <form onSubmit={handleSubmit}>
             {error && (
-              <div className="bg-red-50 text-red-500 px-4 py-3 rounded-md text-sm">
+              <div className="alert alert-danger" role="alert">
                 {error}
               </div>
             )}
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
+            <div className="mb-3">
+              <label htmlFor="email" className="form-label">Email</label>
+              <input
                 id="email"
                 type="email"
+                className="form-control"
                 placeholder="name@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
               />
             </div>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password">Password</Label>
-                <Link to="/forgot-password" className="text-sm text-primary hover:underline">
+            <div className="mb-3">
+              <div className="d-flex justify-content-between">
+                <label htmlFor="password" className="form-label">Password</label>
+                <Link to="/forgot-password" className="text-decoration-none small text-primary">
                   Forgot password?
                 </Link>
               </div>
-              <Input
+              <input
                 id="password"
                 type="password"
+                className="form-control"
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
               />
             </div>
-            <Button type="submit" className="w-full" disabled={isLoading}>
+            <button 
+              type="submit" 
+              className="btn btn-primary w-100"
+              disabled={isLoading}
+            >
               {isLoading ? "Signing in..." : "Sign in"}
-            </Button>
+            </button>
+
+            <div className="text-center mt-3">
+              <span className="text-muted small">Don't have an account?</span>{" "}
+              <Link to="/register" className="text-decoration-none text-primary">
+                Register here
+              </Link>
+            </div>
+
+            <div className="mt-4">
+              <div className="position-relative">
+                <hr />
+                <div className="position-absolute top-50 start-50 translate-middle px-3 bg-white">
+                  <span className="text-muted small">
+                    Demo Accounts
+                  </span>
+                </div>
+              </div>
+
+              <div className="mt-3 small text-muted">
+                <div className="bg-light p-3 rounded">
+                  <div>Customer: customer@example.com</div>
+                  <div>Provider: provider@example.com</div>
+                  <div>Admin: admin@example.com</div>
+                  <div className="mt-1 text-muted small">Password: "password" for all demo accounts</div>
+                </div>
+              </div>
+            </div>
           </form>
-
-          <div className="mt-4 text-center text-sm">
-            <span className="text-muted-foreground">Don't have an account?</span>{" "}
-            <Link to="/register" className="text-primary hover:underline">
-              Register here
-            </Link>
-          </div>
-
-          <div className="mt-6">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-gray-300" />
-              </div>
-              <div className="relative flex justify-center text-xs">
-                <span className="bg-white px-2 text-muted-foreground">
-                  Demo Accounts
-                </span>
-              </div>
-            </div>
-
-            <div className="mt-4 grid gap-2 text-sm text-gray-600">
-              <div className="rounded-md bg-gray-50 p-2">
-                <div>Customer: customer@example.com</div>
-                <div>Provider: provider@example.com</div>
-                <div>Admin: admin@example.com</div>
-                <div className="mt-1 text-xs text-gray-500">Password: "password" for all demo accounts</div>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 };

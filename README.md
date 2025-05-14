@@ -1,73 +1,66 @@
-# Welcome to your Lovable project
 
-## Project info
+# Smart Appointment Scheduler
 
-**URL**: https://lovable.dev/projects/d52906d5-045e-4155-9c2b-933d4d0c8037
+A full-stack web application for scheduling and managing appointments between customers and service providers.
 
-## How can I edit this code?
+## Tech Stack
 
-There are several ways of editing your application.
+- **Frontend**: React, Bootstrap
+- **Backend**: Node.js, Express.js
 
-**Use Lovable**
+## Features
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/d52906d5-045e-4155-9c2b-933d4d0c8037) and start prompting.
+- User authentication (login, registration, role-based access)
+- Customers can book, view, reschedule, and cancel appointments
+- Service Providers can view their schedule, approve or reject appointments, and set availability
+- Admins can manage users, view all appointments, and update system settings
+- AI-based scheduler that suggests optimal time slots
+- Responsive design for mobile, tablet, and desktop devices
 
-Changes made via Lovable will be committed automatically to this repo.
+## Getting Started
 
-**Use your preferred IDE**
+### Prerequisites
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+- Node.js (v14 or later)
+- npm or yarn
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### Installation
 
-Follow these steps:
+1. Clone the repository:
+   ```
+   git clone <repository-url>
+   cd smart-appointment-scheduler
+   ```
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+2. Install frontend dependencies:
+   ```
+   npm install
+   ```
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+3. Install backend dependencies:
+   ```
+   cd server
+   npm install
+   cd ..
+   ```
 
-# Step 3: Install the necessary dependencies.
-npm i
+### Running the Application
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+1. Start the backend server:
+   ```
+   cd server
+   npm run dev
+   ```
 
-**Edit a file directly in GitHub**
+2. In a separate terminal, start the frontend:
+   ```
+   npm run dev
+   ```
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+3. Open your browser and navigate to `http://localhost:3000`
 
-**Use GitHub Codespaces**
+## Demo Accounts
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/d52906d5-045e-4155-9c2b-933d4d0c8037) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+- **Customer**: customer@example.com / password
+- **Provider**: provider@example.com / password
+- **Admin**: admin@example.com / password
