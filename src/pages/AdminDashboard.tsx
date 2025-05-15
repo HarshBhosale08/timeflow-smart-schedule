@@ -1,300 +1,443 @@
 
-import React, { useMemo } from "react";
+import React, { useState, useMemo } from "react";
+import { useAuth } from "@/context/AuthContext";
+import { useAppointments, Appointment, AppointmentStatus } from "@/context/AppointmentContext";
 import Layout from "@/components/Layout";
-import { useAppointments } from "@/context/AppointmentContext";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  LineChart, 
-  Line, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer, 
-  PieChart, 
-  Pie, 
-  Cell 
-} from "recharts";
-import { format, parseISO, subDays, startOfMonth, endOfMonth } from "date-fns";
-import { Link } from "react-router-dom";
-import { ArrowRight } from "lucide-react";
-
-const COLORS = ["#8B5CF6", "#EC4899", "#10B981", "#F59E0B"];
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { format } from "date-fns";
+import { Calendar, Clock, Search, Users, BarChart, PieChart } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { ResponsiveContainer, BarChart as RechartsBarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, PieChart as RechartsPieChart, Pie, Cell } from "recharts";
 
 const AdminDashboard: React.FC = () => {
-  const { getAppointments } = useAppointments();
+  const { user } = useAuth();
+  const { getAppointments, updateAppointmentStatus, getServiceProviders } = useAppointments();
+  
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [providerFilter, setProviderFilter] = useState<string>("all");
+  
+  // Get all appointments and providers
   const allAppointments = getAppointments();
+  const serviceProviders = getServiceProviders();
+  
+  // Filter appointments
+  const filteredAppointments = useMemo(() => {
+    return allAppointments.filter(appointment => {
+      // Search filter
+      const searchMatch = 
+        searchTerm === "" || 
+        appointment.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        appointment.providerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        appointment.serviceName.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      // Status filter
+      const statusMatch = 
+        statusFilter === "all" || 
+        appointment.status === statusFilter;
+      
+      // Provider filter
+      const providerMatch = 
+        providerFilter === "all" || 
+        appointment.providerId === providerFilter;
+      
+      return searchMatch && statusMatch && providerMatch;
+    });
+  }, [allAppointments, searchTerm, statusFilter, providerFilter]);
+  
+  // Get upcoming appointments (today and future)
+  const upcomingAppointments = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    return filteredAppointments.filter(appointment => {
+      const appointmentDate = new Date(appointment.date);
+      return appointmentDate >= today && ["confirmed", "pending"].includes(appointment.status);
+    });
+  }, [filteredAppointments]);
+  
+  // Get past appointments
+  const pastAppointments = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    return filteredAppointments.filter(appointment => {
+      const appointmentDate = new Date(appointment.date);
+      return appointmentDate < today || ["completed", "cancelled"].includes(appointment.status);
+    });
+  }, [filteredAppointments]);
 
-  // Get appointments by status
-  const appointmentsByStatus = useMemo(() => {
-    const statuses = ["confirmed", "pending", "completed", "cancelled"];
-    const counts = statuses.map(status => ({
+  // Calculate statistics
+  const statistics = useMemo(() => {
+    // Count appointments by status
+    const statusCounts = allAppointments.reduce((acc: Record<string, number>, appointment) => {
+      acc[appointment.status] = (acc[appointment.status] || 0) + 1;
+      return acc;
+    }, {});
+    
+    // Count appointments by provider
+    const providerCounts = allAppointments.reduce((acc: Record<string, number>, appointment) => {
+      acc[appointment.providerId] = (acc[appointment.providerId] || 0) + 1;
+      return acc;
+    }, {});
+    
+    // Prepare data for charts
+    const statusChartData = Object.entries(statusCounts).map(([status, count]) => ({
       name: status.charAt(0).toUpperCase() + status.slice(1),
-      value: allAppointments.filter(a => a.status === status).length
+      value: count,
     }));
-    return counts;
-  }, [allAppointments]);
-
-  // Get appointments for the last 7 days
-  const last7DaysAppointments = useMemo(() => {
-    const days = Array.from({ length: 7 }, (_, i) => {
-      const date = subDays(new Date(), 6 - i);
-      const dateStr = format(date, "yyyy-MM-dd");
+    
+    const providerChartData = Object.entries(providerCounts).map(([providerId, count]) => {
+      const provider = serviceProviders.find(p => p.id === providerId);
       return {
-        date: dateStr,
-        displayDate: format(date, "EEE"),
-        count: allAppointments.filter(a => a.date === dateStr).length
+        name: provider ? provider.name : 'Unknown',
+        value: count,
       };
     });
-    return days;
-  }, [allAppointments]);
-
-  // Get appointments for current month
-  const currentMonthAppointments = useMemo(() => {
-    const today = new Date();
-    const firstDay = startOfMonth(today);
-    const lastDay = endOfMonth(today);
     
-    // Create an array for each day in the month
-    const daysInMonth = [];
-    let currentDay = firstDay;
-    
-    while (currentDay <= lastDay) {
-      const dateStr = format(currentDay, "yyyy-MM-dd");
-      daysInMonth.push({
-        date: dateStr,
-        displayDate: format(currentDay, "d"),
-        count: allAppointments.filter(a => a.date === dateStr).length
-      });
-      currentDay = new Date(currentDay.setDate(currentDay.getDate() + 1));
+    return {
+      totalAppointments: allAppointments.length,
+      confirmedCount: statusCounts.confirmed || 0,
+      pendingCount: statusCounts.pending || 0,
+      completedCount: statusCounts.completed || 0,
+      cancelledCount: statusCounts.cancelled || 0,
+      statusChartData,
+      providerChartData,
+    };
+  }, [allAppointments, serviceProviders]);
+  
+  // Handle appointment status update
+  const handleStatusUpdate = async (id: string, status: AppointmentStatus) => {
+    await updateAppointmentStatus(id, status);
+  };
+  
+  // Format date
+  const formatAppointmentDate = (date: string) => {
+    return format(new Date(date), "MMM d, yyyy");
+  };
+  
+  // Get status badge class
+  const getStatusBadgeClass = (status: AppointmentStatus) => {
+    switch (status) {
+      case "confirmed":
+        return "bg-green-100 text-green-800";
+      case "pending":
+        return "bg-yellow-100 text-yellow-800";
+      case "cancelled":
+        return "bg-red-100 text-red-800";
+      case "completed":
+        return "bg-blue-100 text-blue-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
-    
-    return daysInMonth;
-  }, [allAppointments]);
+  };
 
-  // Get appointments by provider
-  const appointmentsByProvider = useMemo(() => {
-    const providers: Record<string, number> = {};
-    
-    allAppointments.forEach(appointment => {
-      const providerName = appointment.providerName;
-      if (!providers[providerName]) {
-        providers[providerName] = 0;
-      }
-      providers[providerName]++;
-    });
-    
-    return Object.entries(providers).map(([name, count]) => ({
-      name,
-      value: count
-    }));
-  }, [allAppointments]);
+  // Chart colors
+  const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff8042'];
 
   return (
     <Layout>
       <div className="pt-16 pb-8">
-        <div className="flex justify-between items-start">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
-            <p className="text-muted-foreground">
-              Overview of all system appointments and activity
-            </p>
-          </div>
-          <Link to="/users">
-            <Button>
-              Manage Users
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-          </Link>
-        </div>
+        <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
+        <p className="text-muted-foreground">
+          Monitor and manage all appointments and system activity
+        </p>
       </div>
 
-      {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      {/* Stats Cards */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">
-              Total Appointments
-            </CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+            <CardTitle className="text-sm font-medium">Total Appointments</CardTitle>
+            <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{allAppointments.length}</div>
+            <div className="text-2xl font-bold">{statistics.totalAppointments}</div>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">
-              Pending Approval
-            </CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+            <CardTitle className="text-sm font-medium">Confirmed</CardTitle>
+            <div className="h-2 w-2 rounded-full bg-green-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">
-              {allAppointments.filter(a => a.status === "pending").length}
-            </div>
+            <div className="text-2xl font-bold">{statistics.confirmedCount}</div>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">
-              Confirmed
-            </CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+            <CardTitle className="text-sm font-medium">Pending</CardTitle>
+            <div className="h-2 w-2 rounded-full bg-yellow-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">
-              {allAppointments.filter(a => a.status === "confirmed").length}
-            </div>
+            <div className="text-2xl font-bold">{statistics.pendingCount}</div>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">
-              Cancelled
-            </CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+            <CardTitle className="text-sm font-medium">Completed</CardTitle>
+            <div className="h-2 w-2 rounded-full bg-blue-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">
-              {allAppointments.filter(a => a.status === "cancelled").length}
-            </div>
+            <div className="text-2xl font-bold">{statistics.completedCount}</div>
           </CardContent>
         </Card>
       </div>
 
       {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-        <Card>
+      <div className="grid gap-6 md:grid-cols-2 mb-8">
+        <Card className="col-span-1">
           <CardHeader>
-            <CardTitle>Appointment Trends</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <PieChart className="h-5 w-5 text-primary" />
+              Appointments by Status
+            </CardTitle>
           </CardHeader>
-          <CardContent>
-            <Tabs defaultValue="week">
-              <TabsList className="mb-4">
-                <TabsTrigger value="week">Last 7 Days</TabsTrigger>
-                <TabsTrigger value="month">This Month</TabsTrigger>
-              </TabsList>
-              <TabsContent value="week" className="h-[300px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart
-                    data={last7DaysAppointments}
-                    margin={{ top: 5, right: 30, left: 0, bottom: 5 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="displayDate" />
-                    <YAxis />
-                    <Tooltip 
-                      formatter={(value) => [`${value} appointments`]}
-                      labelFormatter={(label) => {
-                        const dataItem = last7DaysAppointments.find(item => item.displayDate === label);
-                        return dataItem ? format(parseISO(dataItem.date), "MMMM d, yyyy") : label;
-                      }}
-                    />
-                    <Line 
-                      type="monotone" 
-                      dataKey="count" 
-                      stroke="#8B5CF6" 
-                      name="Appointments"
-                      strokeWidth={2} 
-                      dot={{ r: 4 }} 
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </TabsContent>
-              <TabsContent value="month" className="h-[300px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart
-                    data={currentMonthAppointments}
-                    margin={{ top: 5, right: 30, left: 0, bottom: 5 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis 
-                      dataKey="displayDate" 
-                      tickFormatter={(value, index) => {
-                        // Only show every 5th day to avoid overcrowding
-                        return index % 5 === 0 ? value : '';
-                      }}
-                    />
-                    <YAxis />
-                    <Tooltip 
-                      formatter={(value) => [`${value} appointments`]}
-                      labelFormatter={(label) => {
-                        const dataItem = currentMonthAppointments.find(item => item.displayDate === label);
-                        return dataItem ? format(parseISO(dataItem.date), "MMMM d, yyyy") : label;
-                      }}
-                    />
-                    <Line 
-                      type="monotone" 
-                      dataKey="count" 
-                      stroke="#8B5CF6" 
-                      name="Appointments"
-                      strokeWidth={2}
-                      dot={{ r: 3 }} 
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Appointments by Status</CardTitle>
-          </CardHeader>
-          <CardContent className="flex justify-center">
-            <div className="h-[300px] w-full">
+          <CardContent className="px-2">
+            <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
+                <RechartsPieChart>
                   <Pie
-                    data={appointmentsByStatus}
+                    data={statistics.statusChartData}
                     cx="50%"
                     cy="50%"
                     labelLine={false}
+                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
                     outerRadius={80}
                     fill="#8884d8"
                     dataKey="value"
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                   >
-                    {appointmentsByStatus.map((entry, index) => (
+                    {statistics.statusChartData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value) => [`${value} appointments`]} />
-                </PieChart>
+                  <Tooltip />
+                </RechartsPieChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="col-span-1">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <BarChart className="h-5 w-5 text-primary" />
+              Appointments by Provider
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="px-2">
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <RechartsBarChart
+                  data={statistics.providerChartData}
+                  margin={{
+                    top: 20,
+                    right: 30,
+                    left: 20,
+                    bottom: 30,
+                  }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" tick={{ fontSize: 10 }} tickFormatter={(value) => value.split(' ')[0]} />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="value" name="Appointments" fill="#8884d8" />
+                </RechartsBarChart>
               </ResponsiveContainer>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Top Providers */}
+      {/* Appointment Management */}
       <Card>
         <CardHeader>
-          <CardTitle>Appointments by Provider</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <Calendar className="h-5 w-5 text-primary" />
+            All Appointments
+          </CardTitle>
+          <CardDescription>
+            View and manage all appointments across the system
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {appointmentsByProvider
-              .sort((a, b) => b.value - a.value)
-              .map((provider, index) => (
-                <div key={index} className="flex items-center">
-                  <div className="w-full max-w-md mr-8">
-                    <div className="flex justify-between mb-1">
-                      <span className="text-sm font-medium">{provider.name}</span>
-                      <span className="text-sm text-muted-foreground">{provider.value} appointments</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div 
-                        className="bg-primary rounded-full h-2" 
-                        style={{ 
-                          width: `${(provider.value / Math.max(...appointmentsByProvider.map(p => p.value))) * 100}%` 
-                        }} 
-                      />
-                    </div>
-                  </div>
-                </div>
-              ))}
+          {/* Filters */}
+          <div className="flex flex-col md:flex-row gap-4 mb-6">
+            <div className="relative w-full md:w-1/3">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search appointments..."
+                className="pl-8"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            <div className="w-full md:w-1/4">
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Filter by status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All statuses</SelectItem>
+                  <SelectItem value="confirmed">Confirmed</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
+                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="w-full md:w-1/4">
+              <Select value={providerFilter} onValueChange={setProviderFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Filter by provider" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All providers</SelectItem>
+                  {serviceProviders.map(provider => (
+                    <SelectItem key={provider.id} value={provider.id}>
+                      {provider.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
+
+          {/* Tabs */}
+          <Tabs defaultValue="upcoming" className="w-full">
+            <TabsList>
+              <TabsTrigger value="upcoming">Upcoming ({upcomingAppointments.length})</TabsTrigger>
+              <TabsTrigger value="past">Past ({pastAppointments.length})</TabsTrigger>
+            </TabsList>
+            <TabsContent value="upcoming">
+              <div className="rounded-md border">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="bg-muted/50">
+                        <th className="py-3 px-4 text-left font-medium">Customer</th>
+                        <th className="py-3 px-4 text-left font-medium">Service</th>
+                        <th className="py-3 px-4 text-left font-medium">Provider</th>
+                        <th className="py-3 px-4 text-left font-medium">Date</th>
+                        <th className="py-3 px-4 text-left font-medium">Time</th>
+                        <th className="py-3 px-4 text-left font-medium">Status</th>
+                        <th className="py-3 px-4 text-left font-medium">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y">
+                      {upcomingAppointments.length > 0 ? (
+                        upcomingAppointments.map((appointment) => (
+                          <tr key={appointment.id} className="hover:bg-muted/30">
+                            <td className="py-3 px-4">{appointment.customerName}</td>
+                            <td className="py-3 px-4">{appointment.serviceName}</td>
+                            <td className="py-3 px-4">{appointment.providerName}</td>
+                            <td className="py-3 px-4">{formatAppointmentDate(appointment.date)}</td>
+                            <td className="py-3 px-4">{appointment.startTime}</td>
+                            <td className="py-3 px-4">
+                              <Badge
+                                className={cn(getStatusBadgeClass(appointment.status))}
+                                variant="outline"
+                              >
+                                {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
+                              </Badge>
+                            </td>
+                            <td className="py-3 px-4">
+                              <div className="flex space-x-2">
+                                {appointment.status === "pending" && (
+                                  <>
+                                    <Button 
+                                      size="sm"
+                                      className="h-7 text-xs bg-green-600 hover:bg-green-700"
+                                      onClick={() => handleStatusUpdate(appointment.id, "confirmed")}
+                                    >
+                                      Confirm
+                                    </Button>
+                                    <Button 
+                                      size="sm"
+                                      variant="outline"
+                                      className="h-7 text-xs text-red-600 border-red-200 hover:bg-red-50"
+                                      onClick={() => handleStatusUpdate(appointment.id, "cancelled")}
+                                    >
+                                      Cancel
+                                    </Button>
+                                  </>
+                                )}
+                                {appointment.status === "confirmed" && (
+                                  <Button 
+                                    size="sm"
+                                    variant="outline"
+                                    className="h-7 text-xs text-red-600 border-red-200 hover:bg-red-50"
+                                    onClick={() => handleStatusUpdate(appointment.id, "cancelled")}
+                                  >
+                                    Cancel
+                                  </Button>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan={7} className="py-6 text-center text-muted-foreground">
+                            No upcoming appointments found
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </TabsContent>
+            <TabsContent value="past">
+              <div className="rounded-md border">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="bg-muted/50">
+                        <th className="py-3 px-4 text-left font-medium">Customer</th>
+                        <th className="py-3 px-4 text-left font-medium">Service</th>
+                        <th className="py-3 px-4 text-left font-medium">Provider</th>
+                        <th className="py-3 px-4 text-left font-medium">Date</th>
+                        <th className="py-3 px-4 text-left font-medium">Time</th>
+                        <th className="py-3 px-4 text-left font-medium">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y">
+                      {pastAppointments.length > 0 ? (
+                        pastAppointments.map((appointment) => (
+                          <tr key={appointment.id} className="hover:bg-muted/30">
+                            <td className="py-3 px-4">{appointment.customerName}</td>
+                            <td className="py-3 px-4">{appointment.serviceName}</td>
+                            <td className="py-3 px-4">{appointment.providerName}</td>
+                            <td className="py-3 px-4">{formatAppointmentDate(appointment.date)}</td>
+                            <td className="py-3 px-4">{appointment.startTime}</td>
+                            <td className="py-3 px-4">
+                              <Badge
+                                className={cn(getStatusBadgeClass(appointment.status))}
+                                variant="outline"
+                              >
+                                {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
+                              </Badge>
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan={6} className="py-6 text-center text-muted-foreground">
+                            No past appointments found
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
     </Layout>

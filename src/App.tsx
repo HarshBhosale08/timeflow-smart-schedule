@@ -15,6 +15,7 @@ import Dashboard from "./pages/Dashboard";
 import BookAppointment from "./pages/BookAppointment";
 import CustomerAppointments from "./pages/CustomerAppointments";
 import ProviderSchedule from "./pages/ProviderSchedule";
+import ProviderAvailability from "./pages/ProviderAvailability";
 import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
 
@@ -82,6 +83,14 @@ const App = () => (
                 element={
                   <ProtectedRoute requiredRoles={["provider"]}>
                     <ProviderSchedule />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/availability" 
+                element={
+                  <ProtectedRoute requiredRoles={["provider"]}>
+                    <ProviderAvailability />
                   </ProtectedRoute>
                 } 
               />
