@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -36,6 +35,7 @@ const BookAppointment: React.FC = () => {
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);
   const [aiSlots, setAiSlots] = useState<string[]>([]);
   const [useAiSuggestions, setUseAiSuggestions] = useState(false);
+  const [isLoadingAI, setIsLoadingAI] = useState(false);
 
   // Get all service providers
   const serviceProviders = getServiceProviders();
@@ -102,9 +102,23 @@ const BookAppointment: React.FC = () => {
     setAvailableSlots(slots);
     
     if (user) {
-      // Get AI suggestions
-      const suggestions = await getAISuggestedSlots(user.id, providerId, date);
-      setAiSlots(suggestions);
+      // Show AI loading state
+      setIsLoadingAI(true);
+      
+      try {
+        // Get AI suggestions
+        const suggestions = await getAISuggestedSlots(user.id, providerId, date);
+        setAiSlots(suggestions);
+        
+        if (suggestions.length > 0) {
+          toast.success("AI has suggested optimal time slots for you!");
+          setUseAiSuggestions(true);
+        }
+      } catch (error) {
+        toast.error("Could not get AI recommendations");
+      } finally {
+        setIsLoadingAI(false);
+      }
     }
     
     setStep(3);
@@ -113,6 +127,11 @@ const BookAppointment: React.FC = () => {
   // Handle time selection
   const handleTimeSelection = (time: string) => {
     setSelectedTime(time);
+    
+    if (aiSlots.includes(time)) {
+      toast.success("You selected an AI-recommended time slot!");
+    }
+    
     setStep(4);
   };
 
@@ -247,12 +266,19 @@ const BookAppointment: React.FC = () => {
                       useAiSuggestions && "bg-primary text-primary-foreground hover:bg-primary/90"
                     )}
                   >
-                    AI Suggestions
+                    {useAiSuggestions ? "All Slots" : "AI Recommendations"}
                   </Button>
                 )}
               </div>
 
-              {availableSlots.length > 0 ? (
+              {isLoadingAI && (
+                <div className="flex items-center justify-center p-4 bg-gray-50 rounded-md">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mr-2"></div>
+                  <p>Getting AI recommendations...</p>
+                </div>
+              )}
+
+              {!isLoadingAI && availableSlots.length > 0 ? (
                 <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                   {(useAiSuggestions && aiSlots.length > 0 ? aiSlots : availableSlots).map((slot) => (
                     <Button
@@ -274,9 +300,18 @@ const BookAppointment: React.FC = () => {
                     </Button>
                   ))}
                 </div>
-              ) : (
+              ) : !isLoadingAI && (
                 <div className="p-4 text-center bg-gray-50 rounded-md">
                   <p className="text-muted-foreground">No available slots for this date</p>
+                </div>
+              )}
+
+              {aiSlots.length > 0 && (
+                <div className="mt-3 text-sm text-muted-foreground">
+                  <p className="flex items-center">
+                    <span className="bg-primary rounded-full h-2 w-2 mr-2"></span>
+                    AI-recommended time slots are marked with indicators
+                  </p>
                 </div>
               )}
             </div>
@@ -407,6 +442,21 @@ const BookAppointment: React.FC = () => {
                   <p>Select a service provider and service to continue</p>
                 </div>
               )}
+            </CardContent>
+          </Card>
+          
+          {/* AI Assistant Card */}
+          <Card className="mt-4">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm flex items-center">
+                <span className="bg-primary h-2 w-2 rounded-full mr-2"></span>
+                Smart Scheduling Assistant
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                Our AI analyzes provider schedules, customer preferences, and service details to recommend the best time slots for your appointment.
+              </p>
             </CardContent>
           </Card>
         </div>
