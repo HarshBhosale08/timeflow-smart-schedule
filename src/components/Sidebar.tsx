@@ -28,6 +28,11 @@ const Sidebar: React.FC = () => {
         path: "/profile", 
         icon: <User className="mr-2 h-5 w-5" /> 
       },
+      {
+        title: "Settings",
+        path: "/settings",
+        icon: <Settings className="mr-2 h-5 w-5" />
+      }
     ];
     
     const roleSpecificItems = {
