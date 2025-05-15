@@ -213,9 +213,9 @@ const ProviderSchedule: React.FC = () => {
                       hasAppointments: "bg-primary/10 font-bold text-primary",
                     }}
                     components={{
-                      DayContent: ({ day }) => {
-                        const hasAppointments = datesWithAppointments.some(date => 
-                          isSameDay(date, day)
+                      DayContent: ({ date }) => {
+                        const hasAppointments = datesWithAppointments.some(d => 
+                          isSameDay(d, date)
                         );
                         return (
                           <div className={cn(
@@ -223,7 +223,7 @@ const ProviderSchedule: React.FC = () => {
                             hasAppointments && "font-bold text-primary"
                           )}>
                             <div className="flex h-full w-full items-center justify-center">
-                              {day.day}
+                              {date.getDate()}
                               {hasAppointments && (
                                 <div className="absolute bottom-1 left-1/2 -translate-x-1/2 h-1 w-1 rounded-full bg-primary"></div>
                               )}
