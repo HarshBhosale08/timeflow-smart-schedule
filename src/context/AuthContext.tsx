@@ -51,14 +51,30 @@ const MOCK_USERS: User[] = [
   }
 ];
 
+// Local storage key
+const USER_STORAGE_KEY = 'app_users';
+const CURRENT_USER_KEY = 'user';
+
 // Auth provider component
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [users, setUsers] = useState<User[]>([]);
+
+  // Initialize users in localStorage if they don't exist
+  useEffect(() => {
+    const savedUsers = localStorage.getItem(USER_STORAGE_KEY);
+    if (!savedUsers) {
+      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(MOCK_USERS));
+      setUsers(MOCK_USERS);
+    } else {
+      setUsers(JSON.parse(savedUsers));
+    }
+  }, []);
 
   // Check for existing session on mount
   useEffect(() => {
-    const savedUser = localStorage.getItem("user");
+    const savedUser = localStorage.getItem(CURRENT_USER_KEY);
     if (savedUser) {
       setUser(JSON.parse(savedUser));
     }
@@ -73,12 +89,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 1000));
       
+      // Get users from localStorage
+      const userList = JSON.parse(localStorage.getItem(USER_STORAGE_KEY) || '[]');
+      
       // Find user by email
-      const foundUser = MOCK_USERS.find(u => u.email === email);
+      const foundUser = userList.find((u: User) => u.email === email);
       
       if (foundUser && password === "password") { // In a real app, you'd verify the password hash
         setUser(foundUser);
-        localStorage.setItem("user", JSON.stringify(foundUser));
+        localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(foundUser));
         toast.success(`Welcome back, ${foundUser.name}!`);
       } else {
         throw new Error("Invalid credentials");
@@ -96,8 +115,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(true);
     
     try {
+      // Get current users
+      const currentUsers = JSON.parse(localStorage.getItem(USER_STORAGE_KEY) || '[]');
+      
       // Check if email already exists
-      if (MOCK_USERS.some(u => u.email === email)) {
+      if (currentUsers.some((u: User) => u.email === email)) {
         throw new Error("Email already registered");
       }
       
@@ -113,10 +135,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         avatar: `https://i.pravatar.cc/150?u=${Math.random()}`
       };
       
-      // In a real app, this would be saved to the database
-      // For now, we'll just set the user state
+      // Add to users list and save to localStorage
+      const updatedUsers = [...currentUsers, newUser];
+      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(updatedUsers));
+      setUsers(updatedUsers);
+      
+      // Set as current user
       setUser(newUser);
-      localStorage.setItem("user", JSON.stringify(newUser));
+      localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(newUser));
       toast.success("Registration successful!");
     } catch (error: any) {
       toast.error(error.message || "Registration failed");
@@ -129,7 +155,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Logout function
   const logout = () => {
     setUser(null);
-    localStorage.removeItem("user");
+    localStorage.removeItem(CURRENT_USER_KEY);
     toast.info("You have been logged out");
   };
 

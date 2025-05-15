@@ -61,7 +61,7 @@ interface AppointmentContextType {
 // Create appointment context
 const AppointmentContext = createContext<AppointmentContextType | undefined>(undefined);
 
-// Mock data
+// Default mock data
 const MOCK_APPOINTMENTS: Appointment[] = [
   {
     id: "appt1",
@@ -170,13 +170,86 @@ const MOCK_SERVICE_PROVIDERS: User[] = [
   }
 ];
 
+// Local storage keys
+const STORAGE_KEYS = {
+  APPOINTMENTS: 'app_appointments',
+  SERVICES: 'app_services',
+  AVAILABILITY: 'app_availability'
+};
+
 // Appointment provider component
 export const AppointmentProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
-  const [appointments, setAppointments] = useState<Appointment[]>(MOCK_APPOINTMENTS);
-  const [services, setServices] = useState<Service[]>(MOCK_SERVICES);
-  const [availability, setAvailabilityState] = useState<Availability[]>(MOCK_AVAILABILITY);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [services, setServices] = useState<Service[]>([]);
+  const [availability, setAvailabilityState] = useState<Availability[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  // Load data from localStorage on mount
+  useEffect(() => {
+    const loadFromLocalStorage = () => {
+      try {
+        // Load appointments
+        const savedAppointments = localStorage.getItem(STORAGE_KEYS.APPOINTMENTS);
+        if (savedAppointments) {
+          setAppointments(JSON.parse(savedAppointments));
+        } else {
+          setAppointments(MOCK_APPOINTMENTS);
+          localStorage.setItem(STORAGE_KEYS.APPOINTMENTS, JSON.stringify(MOCK_APPOINTMENTS));
+        }
+        
+        // Load services
+        const savedServices = localStorage.getItem(STORAGE_KEYS.SERVICES);
+        if (savedServices) {
+          setServices(JSON.parse(savedServices));
+        } else {
+          setServices(MOCK_SERVICES);
+          localStorage.setItem(STORAGE_KEYS.SERVICES, JSON.stringify(MOCK_SERVICES));
+        }
+        
+        // Load availability
+        const savedAvailability = localStorage.getItem(STORAGE_KEYS.AVAILABILITY);
+        if (savedAvailability) {
+          setAvailabilityState(JSON.parse(savedAvailability));
+        } else {
+          setAvailabilityState(MOCK_AVAILABILITY);
+          localStorage.setItem(STORAGE_KEYS.AVAILABILITY, JSON.stringify(MOCK_AVAILABILITY));
+        }
+        
+        setLoading(false);
+      } catch (error) {
+        console.error("Error loading from localStorage:", error);
+        // Fallback to mock data if loading fails
+        setAppointments(MOCK_APPOINTMENTS);
+        setServices(MOCK_SERVICES);
+        setAvailabilityState(MOCK_AVAILABILITY);
+        setLoading(false);
+      }
+    };
+    
+    loadFromLocalStorage();
+  }, []);
+
+  // Save appointments to localStorage whenever they change
+  useEffect(() => {
+    if (!loading) {
+      localStorage.setItem(STORAGE_KEYS.APPOINTMENTS, JSON.stringify(appointments));
+    }
+  }, [appointments, loading]);
+
+  // Save services to localStorage whenever they change
+  useEffect(() => {
+    if (!loading) {
+      localStorage.setItem(STORAGE_KEYS.SERVICES, JSON.stringify(services));
+    }
+  }, [services, loading]);
+
+  // Save availability to localStorage whenever they change
+  useEffect(() => {
+    if (!loading) {
+      localStorage.setItem(STORAGE_KEYS.AVAILABILITY, JSON.stringify(availability));
+    }
+  }, [availability, loading]);
 
   // Get all appointments
   const getAppointments = () => {
